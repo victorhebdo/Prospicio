@@ -17,24 +17,25 @@ def home():
 def search():
     st.write("## Search for a Company")
     company_name = st.text_input("Enter a company name:")
-    if st.button("Submit"):
-        # Perform prediction model here with company_name
-        # Return company information as result
-        st.write("## Company Information")
-        st.write(f"The information for **{company_name}** is displayed below:")
-        st.write("")
-        st.write("### Administrative Data")
-        st.write("- Address: 123 Main St.")
-        st.write("- Phone: (123) 456-7890")
-        st.write("- Website: https://www.example.com")
-        st.write("")
-        st.write("### Financial Data")
-        st.write("- Revenue: $1,234,567")
-        st.write("- Net Income: $123,456")
 
-    # Display error message if input is invalid
-    if submit_button and not company_name.strip():
-        st.error("Please enter a valid company name.")
+    if st.button("Submit"):
+        # Check if input is empty
+        if not company_name:
+            st.error("Please enter a company name.")
+        else:
+            # Perform prediction model here with company_name
+            # Return company information as result
+            st.write("## Company Information")
+            st.write(f"The information for **{company_name}** is displayed below:")
+            st.write("")
+            st.write("### Administrative Data")
+            st.write("- Address: 123 Main St.")
+            st.write("- Phone: (123) 456-7890")
+            st.write("- Website: https://www.example.com")
+            st.write("")
+            st.write("### Financial Data")
+            st.write("- Revenue: $1,234,567")
+            st.write("- Net Income: $123,456")
 
 # Create the app
 def main():
@@ -42,7 +43,7 @@ def main():
     page = st.sidebar.radio("Select a page", ["Home", "Search"])
 
     if page == "Home":
-        page = home()
+        home()
     elif page == "Search":
         search()
 
