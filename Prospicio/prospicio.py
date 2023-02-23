@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import json
 
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import StandardScaler
@@ -36,7 +37,7 @@ from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.model_selection import cross_validate
 from sklearn.linear_model import LogisticRegression
 
- from prospicio.nameoffile import total_sectors_n_industries
+from Prospicio.industry_dict import total_sectors_n_industries
 
 #from sklearn import set_config; set_config(display='diagram')
 
@@ -111,10 +112,6 @@ def preprocessing(crunch):
     # Dataframe with both extracts
     df = pd.concat([crunch_rev, crunch_not_rev], axis=0).sample(frac=1)
 
-    # preparing pipeline
-    column_to_impute = ['traffic.monthly']
-    columns_to_num = ['traffic.monthly', 'min_revenues']
-    columns_to_ohe = ['employee_range', 'country_code']
 
     mlb = MultiLabelBinarizer(sparse_output=True)
 
@@ -124,17 +121,47 @@ def preprocessing(crunch):
                 index=df.index,
                 columns=mlb.classes_))
 
-    funds_binary_1_again = df_investors[df_investors['funds_binary']==1]
-    funds_binary_2_again = df_investors[df_investors['funds_binary']==0]
+    funds_binary_1_again = df_ind_cleaned[df_ind_cleaned['funds_binary']==1]
+    funds_binary_2_again = df_ind_cleaned[df_ind_cleaned['funds_binary']==0]
     funds_binary_2_again = funds_binary_2_again.sample(6000)
     reduced_df = pd.concat([funds_binary_1_again, funds_binary_2_again], axis=0).sample(frac=1)
     X = reduced_df.drop(columns=['funds_binary'])
     X= X.drop(columns=['_id', 'industries_list', 'series.total'])
     y = reduced_df['funds_binary']
+    return X, y
+
+def pipeline_creation(X,y):
+    # preparing pipeline
+    column_to_impute = ['traffic.monthly']
+    columns_to_num = ['traffic.monthly', 'min_revenues']
+    columns_to_ohe = ['employee_range', 'country_code']
+
+    preproc_numerical_imputer_traffic = make_pipeline(
+        SimpleImputer())
+
+    preproc_numerical_baseline = make_pipeline(
+        SimpleImputer(),
+        StandardScaler())
+
+
+    preproc_categorical_baseline = make_pipeline(
+        SimpleImputer(strategy="most_frequent"),
+        OneHotEncoder(handle_unknown="ignore"))
+
+    preproc_baseline = make_column_transformer(
+        (preproc_numerical_imputer_traffic, column_to_impute),
+        (preproc_numerical_baseline, columns_to_num),
+        (preproc_categorical_baseline, columns_to_ohe),
+        remainder="drop")
+
+    pipe_baseline = make_pipeline(preproc_baseline, LogisticRegression())
+
+
     score_baseline = cross_val_score(pipe_baseline, X, y, cv=5).mean()
     print(score_baseline)
 
 if __name__ == "__main__":
     csvFile = read_file() #WE BEGIN HERE
     show_info(csvFile)
-    preprocessing(csvFile)
+    X, y = preprocessing(csvFile)
+    pipeline_creation(X,y)

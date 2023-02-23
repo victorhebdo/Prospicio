@@ -1,4 +1,4 @@
-    total_sectors_n_industries = {'Education': ['Secondary Education',
+total_sectors_n_industries = {'Education': ['Secondary Education',
   'Children',
   'E-Learning',
   'Universities',
