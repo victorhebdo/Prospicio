@@ -1,12 +1,12 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
+
 import json
 
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import StandardScaler
-from scipy import stats
+
 
 # sklearn preproc
 from sklearn.model_selection import train_test_split
@@ -30,15 +30,15 @@ from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.ensemble import StackingRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
-
+from prospicio.industry_dict import abcd
 
 from sklearn.preprocessing import MultiLabelBinarizer
 
 from sklearn.model_selection import cross_validate
 from sklearn.linear_model import LogisticRegression
 
-from Prospicio.industry_dict import total_sectors_n_industries
-
+#from prospicio.industry_dict import total_sectors_n_industries
+#from Prospicio.predict import predict
 #from sklearn import set_config; set_config(display='diagram')
 
 # reading the CSV file
@@ -130,7 +130,7 @@ def preprocessing(crunch):
     y = reduced_df['funds_binary']
     return X, y
 
-def pipeline_creation(X,y):
+def make_pipeline(X,y):
     # preparing pipeline
     column_to_impute = ['traffic.monthly']
     columns_to_num = ['traffic.monthly', 'min_revenues']
@@ -153,15 +153,27 @@ def pipeline_creation(X,y):
         (preproc_numerical_baseline, columns_to_num),
         (preproc_categorical_baseline, columns_to_ohe),
         remainder="drop")
-
+    """
     pipe_baseline = make_pipeline(preproc_baseline, LogisticRegression())
-
-
     score_baseline = cross_val_score(pipe_baseline, X, y, cv=5).mean()
     print(score_baseline)
+
+    """
+    pipe_baseline = make_pipeline(preproc_baseline)
+    pipe_baseline.fit(X)
+    pipe_baseline.transform(X)
+
+
+    model = LogisticRegression()
+    model.fit(X,y)
+
+    X_new = ['de', 5, 2.250178e+06, np.nan(), ['internet', 'media_traditional']]
+    pipe_baseline.transform(X_new)
+
+    my_prediction = model.predict(X_new)
 
 if __name__ == "__main__":
     csvFile = read_file() #WE BEGIN HERE
     show_info(csvFile)
     X, y = preprocessing(csvFile)
-    pipeline_creation(X,y)
+    make_pipeline(X,y)
