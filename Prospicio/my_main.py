@@ -111,7 +111,9 @@ def preprocessing(crunch):
     # Dataframe with both extracts
     df = pd.concat([crunch_rev, crunch_not_rev], axis=0).sample(frac=1)
 
+    return df
 
+def multi_hot_encoder(df):
     mlb = MultiLabelBinarizer(sparse_output=True)
 
     df_ind_cleaned = df.join(
@@ -129,7 +131,7 @@ def preprocessing(crunch):
     y = reduced_df['funds_binary']
     return X, y
 
-def make_pipeline(X,y):
+def pipeline(X,y):
     # preparing pipeline
     column_to_impute = ['traffic.monthly']
     columns_to_num = ['traffic.monthly', 'min_revenues']
@@ -152,7 +154,7 @@ def make_pipeline(X,y):
         (preproc_numerical_baseline, columns_to_num),
         (preproc_categorical_baseline, columns_to_ohe),
         remainder="drop")
-
+    """
     pipe_baseline = make_pipeline(preproc_baseline, LogisticRegression())
     score_baseline = cross_val_score(pipe_baseline, X, y, cv=5).mean()
     print(score_baseline)
@@ -162,18 +164,52 @@ def make_pipeline(X,y):
     pipe_baseline.fit(X)
     pipe_baseline.transform(X)
 
+    print("I AM HERE")
+    print()
+    print()
+    print()
+    model_reg = LogisticRegression()
+    model_reg.fit(X,y)
+    breakpoint()
+    print("WHAT IS HAPPENING")
+    print("WHAT IS HAPPENING")
+    print("WHAT IS HAPPENING")
+    print("WHAT IS HAPPENING")
 
-    model = LogisticRegression()
-    model.fit(X,y)
+    # TEST WITH NEW VARIABLE d
+    d = {
+        "country_code": "de",
+        "employee_range": 75,
+        "min_revenues": 8.084688e+06,
+        "traffic.monthly":45023.0,
+        "industries_cleaned":{'Software', 'Business_Products_And_Services'}
+    }
 
-    X_new = ['de', 5, 2.250178e+06, np.nan(), ['internet', 'media_traditional']]
-    pipe_baseline.transform(X_new)
 
-    my_prediction = model.predict(X_new)
-    """
+    X_new = pd.DataFrame(data=d, index=['country_code', 'employee_range', 'min_revenues', 'traffic.monthly',
+                                     'industries_cleaned'])
+    mlb_2 = MultiLabelBinarizer(sparse_output=True)
+
+    X_new_ind_cleaned = X_new.join(
+            pd.DataFrame.sparse.from_spmatrix(
+                mlb_2.fit_transform(X_new['industries_cleaned']),
+                index=X_new.index,
+                columns=mlb_2.classes_))
+
+    pipe_baseline.transform(X_new_ind_cleaned)
+
+    my_prediction = model_reg.predict(X_new_ind_cleaned)
+    print(my_prediction)
+
 
 if __name__ == "__main__":
     csvFile = read_file() #WE BEGIN HERE
     #show_info(csvFile)
-    X, y = preprocessing(csvFile)
-    make_pipeline(X, y)
+    df = preprocessing(csvFile)
+    X, y = multi_hot_encoder(df)
+    pipeline(X, y)
+
+"""    df_ind_cleaned = multi_hot_encoder(df)
+    X, y = take_a_sample(df_ind_cleaned)
+    pipeline(X, y)
+"""
