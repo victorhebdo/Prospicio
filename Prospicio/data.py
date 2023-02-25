@@ -3,7 +3,6 @@ import numpy as np
 import json
 import os
 
-from sklearn.model_selection import cross_val_score, cross_validate
 from sklearn.linear_model import LinearRegression
 
 from prospicio.industry_dict import total_sectors_n_industries
@@ -11,8 +10,8 @@ from prospicio.industry_dict import total_sectors_n_industries
 PACKAGE_DIR = os.path.dirname(os.path.dirname(__file__))
 RAW_DATA_DIR = os.path.join(PACKAGE_DIR, "raw_data")
 
-# reading the CSV file
-def read_file(): # TODO change path
+
+def read_file():
     my_path = os.path.join(RAW_DATA_DIR, 'crunchbase.csv')
     csvFile = pd.read_csv(my_path)
     return csvFile
@@ -93,7 +92,7 @@ def get_data():
     funds_binary_2 = df[df['funds_binary']==0]
     funds_binary_2 = funds_binary_2.sample(round(len(funds_binary_1)*1.5))
     reduced_df = pd.concat([funds_binary_1, funds_binary_2], axis=0).sample(frac=1)
-    # Splitting X, y attention, industries_list still to multilabel
+    # Splitting X, y
     X = reduced_df.drop(columns=['funds_binary','_id', 'series.total', 'industries_list'])
     y = reduced_df['funds_binary']
     return X, y
