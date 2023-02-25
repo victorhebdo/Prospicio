@@ -1,14 +1,15 @@
 import pandas as pd
 from prospicio.registry import load_model
-from prospicio.model import MultiLabelBinarizer, pipeline
+#from prospicio.model import pipeline
 
-#model = load_model()
+model = load_model()
 
 def predict(X_new):
     # maybe need to add some prep work to get X in the right
     # format (format same as X that went into the pipeline,
     # i.e. after preprocessing work)
 
+    """
     mlb_2 = MultiLabelBinarizer(sparse_output=True)
 
     X_new_ind_cleaned = X_new.join(
@@ -16,13 +17,13 @@ def predict(X_new):
                 mlb_2.fit_transform(X_new['industries_cleaned']),
                 index=X_new.index,
                 columns=mlb_2.classes_))
+    """
 
-    pipeline.transform(X_new_ind_cleaned)
-    model = load_model
-    my_prediction = model.predict(X_new_ind_cleaned)
-    print(my_prediction)
-
+    #pipeline.transform(X_new_ind_cleaned)
+    #model = load_model
+    my_prediction = model.predict(X_new)
     return my_prediction
+
 
 if __name__ == "__main__":
     tmp = [{
@@ -33,5 +34,4 @@ if __name__ == "__main__":
         "industries_cleaned":{'Software', 'Business_Products_And_Services'}
     }]
     X_new = pd.DataFrame(data=tmp)
-    print(X_new)
-    #columns=['country_code', 'employee_range', 'min_revenues', 'traffic.monthly', 'industries_cleaned'])
+    print(predict(X_new))

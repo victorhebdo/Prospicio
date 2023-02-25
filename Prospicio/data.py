@@ -83,3 +83,24 @@ def preprocessing(crunch):
     df = pd.concat([crunch_rev, crunch_not_rev], axis=0).sample(frac=1)
 
     return df
+
+
+def get_data():
+    df = read_file()
+    df = preprocessing(df)
+    # Undersampling
+    funds_binary_1 = df[df['funds_binary']==1]
+    funds_binary_2 = df[df['funds_binary']==0]
+    funds_binary_2 = funds_binary_2.sample(round(len(funds_binary_1)*1.5))
+    reduced_df = pd.concat([funds_binary_1, funds_binary_2], axis=0).sample(frac=1)
+    # Splitting X, y attention, industries_list still to multilabel
+    X = reduced_df.drop(columns=['funds_binary','_id', 'series.total', 'industries_list'])
+    y = reduced_df['funds_binary']
+    return X, y
+
+
+if __name__ == "__main__":
+    X, y = get_data()
+    print(X.shape)
+    print(X.columns)
+    print(X.head(1))

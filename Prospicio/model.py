@@ -36,8 +36,9 @@ from sklearn.linear_model import LogisticRegression
 
 from prospicio.industry_dict import total_sectors_n_industries
 
-from prospicio.data import read_file, show_info, preprocessing
+from prospicio.data import get_data
 from prospicio.registry import save_model
+from prospicio.multicatencoder import MultiCategoriesEncoder
 
 
 def multi_hot_encoder(df):
@@ -59,14 +60,15 @@ def multi_hot_encoder(df):
     return X, y
 
 
-def pipeline():
+def preproc_pipeline():
     # preparing pipeline
-    column_to_impute = ['traffic.monthly']
+    #column_to_impute = ['traffic.monthly']
     columns_to_num = ['traffic.monthly', 'min_revenues']
     columns_to_ohe = ['employee_range', 'country_code']
+    column_to_vect = ['industries_cleaned']
 
-    preproc_numerical_imputer_traffic = make_pipeline(
-        SimpleImputer())
+    #preproc_numerical_imputer_traffic = make_pipeline(
+    #    SimpleImputer())
 
     preproc_numerical_baseline = make_pipeline(
         SimpleImputer(),
@@ -76,15 +78,21 @@ def pipeline():
         SimpleImputer(strategy="most_frequent"),
         OneHotEncoder(handle_unknown="ignore"))
 
+    preproc_multicat_baseline = make_pipeline(
+        MultiCategoriesEncoder()
+    )
+
     preproc_baseline = make_column_transformer(
-        (preproc_numerical_imputer_traffic, column_to_impute),
+        #(preproc_numerical_imputer_traffic, column_to_impute),
         (preproc_numerical_baseline, columns_to_num),
         (preproc_categorical_baseline, columns_to_ohe),
+        (preproc_multicat_baseline, column_to_vect),
         remainder="drop")
+    return preproc_baseline
 
-    pipe_baseline = make_pipeline(preproc_baseline, LogisticRegression())
-    #score_baseline = cross_val_score(pipe_baseline, X, y, cv=5).mean()
-    #print(score_baseline)
+
+def pipeline():
+    pipe_baseline = make_pipeline(preproc_pipeline(), LogisticRegression())
     return pipe_baseline
 
 
@@ -95,8 +103,13 @@ def train(X, y):
 
 
 if __name__ == "__main__":
-    csvFile = read_file()
-    #show_info(csvFile)
-    df = preprocessing(csvFile)
-    X, y = multi_hot_encoder(df)
+    X, y = get_data()
+    score_baseline = cross_val_score(pipeline(), X, y, cv=5).mean()
+    print(score_baseline)
     train(X, y)
+    """
+    test_preproc = preproc_pipeline()
+    X_transformed = pd.DataFrame(test_preproc.fit_transform(X),
+                                 columns=test_preproc.get_feature_names_out())
+    print(X_transformed.columns)
+    """
